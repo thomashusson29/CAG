@@ -59,7 +59,7 @@ library(rsconnect)
 library(pacman)
 library(stringr)
 
-commit_and_push_CAG <- function(message = "Mise à jour") {
+commit_and_push_CAG <- function(message = "Mise à jour du 21/08") {
   repo_path <- "/home/thomas-husson/Documents/R/CAG"
   
   # Aller dans le bon dossier
@@ -81,9 +81,6 @@ commit_and_push_CAG <- function(message = "Mise à jour") {
 }
 
 commit_and_push_CAG("Ajout des résultats au script")
-
-
-
 
 ##-------Import de la base----
 
