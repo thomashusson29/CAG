@@ -59,6 +59,32 @@ library(rsconnect)
 library(pacman)
 library(stringr)
 
+commit_and_push_CAG <- function(message = "Mise à jour") {
+  repo_path <- "/home/thomas-husson/Documents/R/CAG"
+  
+  # Aller dans le bon dossier
+  old_wd <- getwd()
+  setwd(repo_path)
+  on.exit(setwd(old_wd))  # revenir au dossier initial après
+  
+  # Vérifier le remote et la branche
+  cat("Remote GitHub utilisé :\n")
+  system("git remote -v")
+  
+  cat("\nBranche courante :\n")
+  system("git branch --show-current")
+  
+  # Ajouter, commit, push
+  system("git add .")
+  system(paste0("git commit -m \"", message, "\""))
+  system("git push origin main")
+}
+
+commit_and_push_CAG("Ajout des résultats au script")
+
+
+
+
 ##-------Import de la base----
 
 gs4_deauth()  # aucune fenêtre OAuth, accès read-only aux feuilles publiques
