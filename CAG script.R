@@ -59,8 +59,16 @@ library(rsconnect)
 library(pacman)
 library(stringr)
 
-commit_and_push_CAG <- function(message = "Mise à jour du 21/08") {
+#---COMMIT & PUSH SUR GITHUB----
+
+commit_and_push_CAG <- function() {
   repo_path <- "/home/thomas-husson/Documents/R/CAG"
+  
+  # Demander le message à l'utilisateur
+  message <- readline(prompt = "👉 Entrez le message de commit : ")
+  if (message == "") {
+    message <- "Mise à jour sans message précisé"
+  }
   
   # Aller dans le bon dossier
   old_wd <- getwd()
@@ -80,7 +88,9 @@ commit_and_push_CAG <- function(message = "Mise à jour du 21/08") {
   system("git push origin main")
 }
 
-commit_and_push_CAG("Ajout des résultats au script")
+
+commit_and_push_CAG()
+
 
 ##-------Import de la base----
 
