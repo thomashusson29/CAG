@@ -103,7 +103,9 @@ gs4_deauth()  # aucune fenêtre OAuth, accès read-only aux feuilles publiques
 df_total <- read_sheet(
   "https://docs.google.com/spreadsheets/d/1Y-BqL27PF0h6lDOmTLCJV8pXXeJ6gYbTL55NRnkOAa0/edit?gid=1505593793",
   sheet = "Feuille1"
-)
+) %>%
+  filter(vrai_CAG == 1)
+
 
 ##-----Stats pour patients opérés uniquement (df$opere = 1)----
 df <- df_total %>% 
