@@ -64,16 +64,20 @@ library(stringr)
 commit_and_push_CAG <- function() {
   repo_path <- "/home/thomas-husson/Documents/R/CAG"
   
-  # Demander le message à l'utilisateur
-  message <- readline(prompt = "👉 Entrez le message de commit : ")
-  if (message == "") {
-    message <- "Mise à jour sans message précisé"
+  # Demander le message uniquement en mode interactif
+  if (interactive()) {
+    message <- readline(prompt = "Message de commit : ")
+    if (message == "") {
+      message <- paste0("Mise à jour du ", format(Sys.Date(), "%d/%m"))
+    }
+  } else {
+    message <- paste0("Mise à jour du ", format(Sys.Date(), "%d/%m"))
   }
   
   # Aller dans le bon dossier
   old_wd <- getwd()
   setwd(repo_path)
-  on.exit(setwd(old_wd))  # revenir au dossier initial après
+  on.exit(setwd(old_wd))
   
   # Vérifier le remote et la branche
   cat("Remote GitHub utilisé :\n")
