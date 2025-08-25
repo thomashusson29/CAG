@@ -177,7 +177,7 @@ cols_to_include_1 <- c(
   "CCI1_Mild_liver_disease_(legere)",
   "CCI1_Diabetes",
   "CCI2_cerebrovascular_hemiplegia_event",
-  "CCI2_moderate_to_severe_renal_disease_DFG>60",
+  "CCI2_moderate_to_severe_renal_disease_DFGsup60",
   "CCI2_diabetes_chronic_complications",
   "CCI2_cancer_without_metastases",
   "CCI2_leukemia",
@@ -274,7 +274,7 @@ tableau1
 ##-------Stats pour historique des traitements----
 #ne compte pas les patients pour qui la poussée est inaugurale de la RCH (donc pas de ttt de fond)
 df_t2 <- df %>%
-  filter(is.na(`poussee_inaugurale_Y/N`) | `poussee_inaugurale_Y/N` != 1)
+  filter(is.na(poussee_inaugurale_Y_N) | poussee_inaugurale_Y_N != 1)
 
 cols_to_include_2 <- c(
   # Locaux
@@ -305,8 +305,8 @@ cols_to_include_2 <- c(
   "adalimumab_YN",
   
   # Autres biothérapies
-  "historique_autres_anticorps_monoclonaux_vedo_tofa_stelara_golimumab_YN",
-  "historique_autres_anticorps_monoclonaux_vedo_tofa_stelara_golimumab_nombre",
+  "historique_autres_anticorps_monoclonaux_vedo_tofa_stelara_YN",
+  "historique_autres_anticorps_monoclonaux_vedo_tofa_stelara_nombre",
   "vedolizumab_fond_ou_poussee_ancienne",
   "tofacitinib_YN",
   "stelara_YN",
@@ -506,7 +506,7 @@ tableau_sortie_global
 
 # 1) Sous-ensemble: pas de poussée inaugurale
 df_prev <- df %>%
-  filter(is.na(`poussee_inaugurale_Y/N`) | `poussee_inaugurale_Y/N` != 1) %>%
+  filter(is.na(poussee_inaugurale_Y_N) | poussee_inaugurale_Y_N != 1) %>%
   mutate(
     # Délais clés (en jours)
     delai_symptomes_admission       = as.numeric(as.Date(date_admission_hopital) - as.Date(`date_debut_symptomes_episodes_actuel`)),
@@ -1015,6 +1015,65 @@ tableau4 <- df %>%
 tableau4
 
 #--------Stats Postop----
+# Colonnes à inclure (une par ligne, regroupées par blocs)
+cols_to_include_5 <- c(
+  # complications septiques/chirurgicales
+  "intraabdominal_abcess_or_collection",
+  "intra_abdominal_hematoma",
+  "wound_complication",
+  "detail_wound_complication",
+  "peritonite",
+  "radiological_drainage_for_complication",
+  "reoperation_for_complication",
+  "details_reoperation_for_complication",
+  
+  # iléus
+  "ileus",
+  "ileus_SNG_1_a_jeun_0",
+  "ileus_SNG",
+  "ileus_a_jeun_seul",
+  
+  # stomie / pariétal
+  "stoma_related_complication",
+  "detail_stoma_related_complication",
+  
+  # médicaux
+  "rectal_bleeding",
+  "anemia_transfusion",
+  "infection_urinaire",
+  "insuffisance_renale",
+  "acute_urinary_retention",
+  "pneumopathie",
+  "MTEV",
+  "catheter_infection",
+  "bacteriema",
+  "dehydratation_IV_fluids",
+  "poor_control_of_pain",
+  
+  # autres & scores
+  "other",
+  "other_details",
+  "other_sepsis",
+  "ClavienDindo",
+  "Dindo_sup2",
+  
+  # durées/sortie
+  "duree_hospit_postop",
+  "duree_hospit_sup8",
+  
+  # agrégats
+  "Overall_morbidity",
+  "Severe_Morbidity",
+  "Intraabdominal_septic_complications",
+  "Surgical_complications",
+  "Medical_complications",
+  "all_septic",
+  "Stomial_complications",
+  "All_Stomial_or_Wound_complications",
+  "readmission_within_30d",
+  "J_transit"
+)
+
 tableau5 <- df %>%
   tbl_summary(
     by = delai_sup_30,
