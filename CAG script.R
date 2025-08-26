@@ -153,6 +153,129 @@ df_total <- read_sheet(
 df <- df_total %>% 
   filter(opere == 1.00)
 
+##-------Premières stats sans by = ----
+cols_to_include_1 <- c(
+  "age_at_surg_or_dg", 
+  "BMI", 
+  "sex", 
+  "RCH", 
+  "ASAscore", 
+  "ASA_sup_2",
+  "active_smoker", 
+  "IBD_duration_years",
+  "IBD_age_of_diagnosis",
+  "poussee_inaugurale_Y_N",
+  "combientieme_poussee",
+  "hospitalisations_anterieures_pour_CAG_ou_corticothérapie",
+  "hospitalisations_anterieures_pourquoi",
+  "ttt_dernière_CAG_CTC_seuls",
+  "ttt_dernière_CAG_CTC_et_2eligne",
+  
+  # Charlson comorbidities
+  "CCI1_Prior_Myocardial",
+  "CCI1_Congestive_HF",
+  "CCI1_Peripheral_vascular",
+  "CCI1_Cerebrovascular_disease",
+  "CCI1_Dementia",
+  "CCI1_Chronic_pulmonary_disease",
+  "CCI1_Rheumatologic_disease",
+  "CCI1_Peptic_ulcer_disease",
+  "CCI1_Mild_liver_disease_(legere)",
+  "CCI1_Diabetes",
+  "CCI2_cerebrovascular_hemiplegia_event",
+  "CCI2_moderate_to_severe_renal_disease_DFGsup60",
+  "CCI2_diabetes_chronic_complications",
+  "CCI2_cancer_without_metastases",
+  "CCI2_leukemia",
+  "CCI2_lymphoma_myeloma",
+  "CCI3_moderate_severe_liver_disease",
+  "CCI6_metastatic_solid_tumor",
+  "CCI6_SIDA",
+  "Charlson_Comorbidity_total",
+  
+  # Tabac
+  "smoker",
+  "active_smoker",
+  
+  # IBD-specific,
+  "IBD_duration_days",
+  "CSP_associee",
+  "uveite_associee",
+  "psoriasis_ou_dermato_associee",
+  "aphtose_associee",
+  "appendicectomy_YN",
+  "SpA",
+  "LAP_associees",
+  
+  # Montreal classification
+  "MontrealClassA_A1sub16_A21740_A3sup40",
+  "MontrealClassB_B1nistricturenipenetrate_B2stricturing_B3_penetrate_B4_both"
+)
+
+df <- df %>%
+  dplyr::mutate(
+    sex = factor(sex),
+    smoker = factor(smoker),
+    active_smoker = factor(active_smoker),
+    Crohn_RCH = factor(Crohn_RCH)
+  )
+
+df <- df %>%
+  mutate(
+    
+    Montreal_Age_Class = if_else(
+      Crohn_RCH == "Crohn" & !is.na(IBD_age_of_diagnosis),
+      as.character(cut(IBD_age_of_diagnosis, c(-Inf,16,40,Inf), labels = c("A1","A2","A3"))),
+      NA_character_
+    ),
+    MontrealClassA_A1sub16_A21740_A3sup40 = if_else(
+      Crohn_RCH == "Crohn", Montreal_Age_Class,
+      as.character(MontrealClassA_A1sub16_A21740_A3sup40)
+    ),
+    Montreal_Age_Class_Label = dplyr::recode(
+      Montreal_Age_Class, A1 = "A1 (≤16 ans)", A2 = "A2 (17–40 ans)", A3 = "A3 (>40 ans)", .default = NA_character_
+    )
+  )
+
+
+tableau1 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_1),
+    missing = "no",
+    type = list(
+      Charlson_Comorbidity_total ~ "continuous",
+      combientieme_poussee ~ "continuous"# <-- forcée en continue
+    ),
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous() ~ 1,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      age_at_surg_or_dg ~ "Âge (années)",
+      BMI ~ "BMI (kg/m²)",
+      sex ~ "Sexe",
+      RCH ~ "RCH (n, %)",
+      ASAscore ~ "Score ASA",
+      ASA_sup_2 ~ "Score ASA > 2",
+      active_smoker ~ "Tabagisme actif",
+      IBD_duration_years ~ "Durée MICI (années)",
+      IBD_age_of_diagnosis ~ "Âge de diagnostic MICI (années)",
+      Charlson_Comorbidity_total ~ "Score de Charlson"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+# Afficher dans le viewer
+tableau1
+
+##
+
+
 ##-------Premières stats----
 cols_to_include_1 <- c(
   "age_at_surg_or_dg", 
@@ -503,6 +626,58 @@ tableau_sortie_global
 
 ##-------Stats-timing------
 
+#includes ces colonnes : df$delai_admission_derniere_hospit
+#df$delai_chirurgie_diagnostic
+#df$delai_chirurgie_premiers_symptomes
+#df$delai_dernier_ttt_rehospit
+#df$nb_selles_24h
+#df$nb_selles_sanglantes_24h
+#df$Truelove_minor_heart_rate_sup_or_equal_90
+#df$Truelove_minor_temperature_sup_or_equal_37_8
+#df$Truelove_minor_Hb_inf_or_equal_10_5
+#df$Truelove_minor_Albumine_inf_or_equal_35
+#df$Truelove_minor_CRPsup_equal_30
+
+
+
+cols_to_include_timing <- c(
+  "delai_admission_derniere_hospit",
+  "delai_chirurgie_diagnostic",
+  "delai_chirurgie_premiers_symptomes",
+  "delai_dernier_ttt_rehospit",
+  "nb_selles_24h",
+  "nb_selles_sanglantes_24h",
+  "Truelove_minor_heart_rate_sup_or_equal_90",
+  "Truelove_minor_fever_sup_37_8",
+  "Truelove_minor_Hb_inf_or_equal_10_5",
+  "Truelove_minor_Albumine_inf_or_equal_35",
+  "Truelove_minor_CRPsup_equal_30"
+)
+
+
+#tableau avec ca
+tableau_timing <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_timing),
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})"
+    ),
+    digits = list(
+      all_continuous() ~ 1
+    ),
+    label = list(
+      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)",
+      delai_chirurgie_diagnostic      ~ "Délai: diag → chirurgie (j)",
+      delai_chirurgie_premiers_symptomes ~ "Délai: premiers symptomes → chirurgie (j)",
+      delai_dernier_ttt_rehospit      ~ "Délai: dernière ligne → réhospit (j)"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3)")
+
+tableau_timing
+
 
 # 1) Sous-ensemble: pas de poussée inaugurale
 df_prev <- df %>%
@@ -752,7 +927,7 @@ res_line           # tableau coef line-level (SE robustes)
 
 
 
-#--------Stats clinique poussée----
+#--------Stats clinique poussée sans by =----
 # Colonnes à inclure (une par ligne, regroupées par blocs)
 cols_to_include_3 <- c(
   # Chirurgie & hospitalisation
@@ -840,11 +1015,205 @@ cols_to_include_3 <- c(
 
 tableau3 <- df %>%
   tbl_summary(
-    by = delai_sup_30,
     include = all_of(cols_to_include_3),
     missing = "ifany",
     type  = list(all_dichotomous() ~ "dichotomous"),
     value = list(all_dichotomous() ~ 1),
+    statistic = list(
+      all_continuous()  ~ "{median} ({p25}, {p75})",
+      all_dichotomous() ~ "{n} ({p}%)",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_dichotomous() ~ 0,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      # Chirurgie & hospitalisation
+      chirurgie_urgente ~ "Chirurgie urgente",
+      hospit_pre_ICU_tradi ~ "Hospitalisation préalable (ICU/traditionnel)",
+      
+      # Poids / nutrition
+      weight_loss_sup10 ~ "Perte de poids >10%",
+      AlbuminLevel_admission ~ "Albuminémie à l'admission (g/L)",
+      Albumin_sub35 ~ "Albumine <35 g/L",
+      Malnutrition_BMIsub18_or_albusub35_or_weightloss ~ "Malnutrition (IMC<18, albumine<35 ou perte de poids)",
+      
+      # Biologie
+      CRP_admission ~ "CRP à l'admission (mg/L)",
+      CRP_admission_sup30 ~ "CRP >30 mg/L",
+      Hb_preop_last2mo ~ "Hémoglobine pré-op (g/dL, 2 mois)",
+      Hb_preopInf10_5_g_dL ~ "Hémoglobine <10,5 g/dL",
+      calpro_a_ladmission ~ "Calprotectine à l'admission (µg/g)",
+      leucocytose_admission ~ "Leucocytes à l'admission (/mm³)",
+      leucocytosis_sup_10_or_sub_4 ~ "Leucocytes >10 ou <4",
+      plaquettes_admission ~ "Plaquettes à l'admission (/mm³)",
+      thrombopenia_sub150 ~ "Thrombopénie <150 G/L",
+      thrombocytosis_sup400 ~ "Thrombocytose >400 G/L",
+      
+      # Imagerie
+      imagerie_au_diagnostic ~ "Imagerie réalisée au diagnostic",
+      imagerie_dg_laquelle ~ "Imagerie: type",
+      imagerie_dg_TDM ~ "Scanner (TDM)",
+      imagerie_dg_ASP ~ "ASP",
+      
+      # Endoscopie / UCEIS
+      rectosig_au_diagnostic ~ "Rectosigmoïdoscopie au diagnostic",
+      rectosig_poussee_nombre ~ "Nombre de rectosigmoïdoscopies pendant poussée",
+      rectosig_CAG_UCEIS_numero_1 ~ "Score UCEIS (1er exam)",
+      rectosig_CAG_limite_sup_atteinte ~ "Limite proximale atteinte",
+      rectosig_CAG_derniere_UCEIS ~ "Score UCEIS (dernier exam)",
+      rectosig_derniere_delai ~ "Délai dernier exam (j)",
+      score_UCEIS ~ "Score UCEIS global",
+      
+      # Infections / dysplasie
+      CMV_YN ~ "Infection CMV",
+      clostridium_YN ~ "Clostridium",
+      dysplasie_YN ~ "Dysplasie",
+      
+      # Lichtiger & clinique
+      Lichtiger ~ "Score Lichtiger",
+      Lichtiger_sup_or_equal_10 ~ "Score Lichtiger ≥10",
+      nb_selles_24h ~ "Nb de selles/24h",
+      selles_nocturnes ~ "Selles nocturnes",
+      saignement_rectal ~ "Saignements rectaux",
+      incontinence_fecale ~ "Incontinence fécale",
+      douleurs_abdo ~ "Douleurs abdominales",
+      douleurs_abdo_provoquees ~ "Douleurs abdominales provoquées",
+      etat_general ~ "Altération de l'état général",
+      imodium ~ "Traitement par Imodium",
+      lichtiger_diagnostic ~ "Score Lichtiger au diagnostic",
+      Lichtiger_chirurgie ~ "Score Lichtiger pré-chirurgie",
+      
+      # Complications aiguës
+      hemorragie_digestive_grave_YN ~ "Hémorragie digestive grave",
+      perforation_YN ~ "Perforation",
+      colectasie_caecum_mm ~ "Colectasie cæcum (mm)",
+      colectasie_transverse_mm ~ "Colectasie transverse (mm)",
+      colectasie_caecum_sup100mm ~ "Colectasie cæcum >100 mm",
+      colectasie_transversesup60mm ~ "Colectasie transverse >60 mm",
+      megacôlon_toxique_YN ~ "Mégacôlon toxique",
+      instabilite_HD ~ "Instabilité hémodynamique",
+      
+      # ATCD digestifs
+      previous_digestive_surgery ~ "ATCD chirurgie digestive",
+      previous_digestive_surgery_whole_text ~ "ATCD chirurgie digestive (texte)",
+      previous_digestive_resection ~ "ATCD résection digestive",
+      previous_digestive_resection_for_MICI ~ "ATCD résection pour MICI",
+      number_of_previous_resection ~ "Nb de résections digestives antérieures",
+      
+      # Topographie & lésions
+      topographie_colite ~ "Topographie de la colite",
+      endoscopie_lesions_severes ~ "Lésions sévères à l'endoscopie",
+      ulcerations_creusantes ~ "Ulcérations creusantes",
+      ulcerations_en_puits ~ "Ulcérations en puits",
+      decollement_muqueux ~ "Décollement muqueux",
+      abrasion_muqueuse ~ "Abrasion muqueuse"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+# Afficher
+tableau3
+
+#--------Stats clinique poussée----
+# Colonnes à inclure (une par ligne, regroupées par blocs)
+cols_to_include_3 <- c(
+  # Chirurgie & hospitalisation
+  "chirurgie_urgente",
+  "hospit_pre_ICU_tradi",
+  
+  # Poids / nutrition
+  "weight_loss_sup10",
+  "AlbuminLevel_admission",
+  "Albumin_sub35",
+  "Malnutrition_BMIsub18_or_albusub35_or_weightloss",
+  
+  # Biologie à l'admission
+  "CRP_admission",
+  "CRP_admission_sup30",
+  "Hb_preop_last2mo",
+  "Hb_preopInf10_5_g_dL",
+  "calpro_a_ladmission",
+  "leucocytose_admission",
+  "leucocytosis_sup_10_or_sub_4",
+  "plaquettes_admission",
+  "thrombopenia_sub150",
+  "thrombocytosis_sup400",
+  
+  # Imagerie au diagnostic
+  "imagerie_au_diagnostic",
+  "imagerie_dg_laquelle",
+  "imagerie_dg_TDM",
+  "imagerie_dg_ASP",
+  
+  # Endoscopie / UCEIS
+  "rectosig_au_diagnostic",
+  "rectosig_poussee_nombre",
+  "rectosig_CAG_UCEIS_numero_1",
+  "rectosig_CAG_limite_sup_atteinte",
+  "rectosig_CAG_derniere_UCEIS",
+  "rectosig_derniere_delai",
+  "score_UCEIS",
+  
+  # Infections / dysplasie
+  "CMV_YN",
+  "clostridium_YN",
+  "dysplasie_YN",
+  
+  # Lichtiger & clinique
+  "Lichtiger",
+  "Lichtiger_sup_or_equal_10",
+  "nb_selles_24h",
+  "selles_nocturnes",
+  "saignement_rectal",
+  "incontinence_fecale",
+  "douleurs_abdo",
+  "douleurs_abdo_provoquees",
+  "etat_general",
+  "imodium",
+  "lichtiger_diagnostic",
+  "Lichtiger_chirurgie",
+  
+  # Complications aiguës
+  "hemorragie_digestive_grave_YN",
+  "perforation_YN",
+  "colectasie_caecum_mm",
+  "colectasie_transverse_mm",
+  "colectasie_caecum_sup100mm",
+  "colectasie_transversesup60mm",
+  "megacôlon_toxique_YN",
+  "instabilite_HD",
+  
+  # ATCD digestifs
+  "previous_digestive_surgery",
+  "previous_digestive_surgery_whole_text",
+  "previous_digestive_resection",
+  "previous_digestive_resection_for_MICI",
+  "number_of_previous_resection",
+  
+  # Topographie & lésions endoscopiques
+  "topographie_colite",
+  "endoscopie_lesions_severes",
+  "ulcerations_creusantes",
+  "ulcerations_en_puits",
+  "decollement_muqueux",
+  "abrasion_muqueuse"
+)
+
+df$score_UCEIS <- as.numeric(df$score_UCEIS)
+
+tableau3 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_3),
+    type = list(
+      score_UCEIS ~ "continuous",
+      all_dichotomous() ~ "dichotomous"
+    ),
+    value = list(all_dichotomous() ~ 1),
+    missing = "ifany",
     statistic = list(
       all_continuous()  ~ "{median} ({p25}, {p75})",
       all_dichotomous() ~ "{n} ({p}%)",
@@ -944,6 +1313,7 @@ tableau3 <- df %>%
 
 # Afficher
 tableau3
+
 
 #--------Stats chirurgie----
 # Colonnes à inclure (une par ligne, regroupées par blocs)
@@ -1143,3 +1513,23 @@ tableau5 <- df %>%
 # Afficher
 tableau5
 
+
+
+#date de traitement de la poussée
+df$`1st_lign_date`
+df$`2nd_lign_date`
+df$`3rd_lign_date`
+df$`4th_lign_date`
+df$`5th_lign_date`
+df$date_admission_hopital
+
+df$date_debut_symptomes_episodes_actuel
+
+df$date_diagnostic_colite_aiguë_actuelle
+
+
+
+
+oui mais ce score n'a pas de sens en pratique parce que dans ce cas il ne se calcule qu'une fois que le patient est sorti puis est revenu !!! alors que notre but est de savoir si on est "faussement rassuré" donc ce n'est pas un bon critère les antiTNF au cours d'une hospitalisation antérieure
+
+Il vaut mieux regarder juste "anti TNF a cours de la séquence globalae" 
