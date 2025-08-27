@@ -1528,8 +1528,4 @@ df$date_debut_symptomes_episodes_actuel
 df$date_diagnostic_colite_aiguë_actuelle
 
 
-
-
-oui mais ce score n'a pas de sens en pratique parce que dans ce cas il ne se calcule qu'une fois que le patient est sorti puis est revenu !!! alors que notre but est de savoir si on est "faussement rassuré" donc ce n'est pas un bon critère les antiTNF au cours d'une hospitalisation antérieure
-
-Il vaut mieux regarder juste "anti TNF a cours de la séquence globalae" 
+claudeAddin()
