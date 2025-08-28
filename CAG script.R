@@ -1,5 +1,6 @@
 ##-------INSTALLATION PACKAGES DE BASE-------
-if (!require("devtools")) install.packages("devtools")
+if (!require("devtools")) install.packages("devtools", dependencies = TRUE)
+if (!require("remotes")) install.packages("remotes", dependencies = TRUE)
 #install claudeR avec force = TRUE pour écraser les anciennes versions
 devtools::install_github("IMNMV/ClaudeR", force = TRUE)
 library(ClaudeR)
@@ -392,6 +393,134 @@ tableau1 <- df %>%
 tableau1
 
 ##
+
+
+#délai réhospit après dernière hospitalisation
+cols_to_include_delai <- c(
+  "delai_admission_derniere_hospit"
+)
+
+df_sortie <- df %>%
+  filter(df$sortie_pendant_traitement_YN == 1)
+
+tableaudelai <- df_sortie %>%
+  tbl_summary(
+    by = delai_sup_30,
+    include = all_of(cols_to_include_delai),
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})"
+    ),
+    digits = list(
+      all_continuous() ~ 1
+    ),
+    label = list(
+      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3)")
+
+# Afficher dans le viewer
+tableaudelai
+
+#tableau délai sans by = 
+tableaudelai2 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_delai),
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})"
+    ),
+    digits = list(
+      all_continuous() ~ 1
+    ),
+    label = list(
+      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3)")
+
+tableaudelai2
+
+
+library(ggplot2)
+
+# On garde seulement les patients avec une réadmission
+df_delai <- df_sortie %>%
+  filter(!is.na(delai_admission_derniere_hospit))
+
+# Courbe de densité avec ligne à 30 jours
+ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation",
+    subtitle = "Ligne rouge = seuil à 30 jours"
+  ) +
+  theme_minimal(base_size = 13)
+
+#export
+ggsave("delai_rehospitalisation_density.png", width = 8, height = 5, dpi = 1000)
+
+# Courbe de densité sans ligne à 30 jours
+ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  theme_minimal(base_size = 13)
+
+#export
+ggsave("delai_rehospitalisation_density_noline.png", width = 8, height = 5, dpi = 1000)
+
+
+
+
+
+
+
+
+#A LA MÊME TAILLE
+library(ggplot2)
+
+# Définir les bornes communes
+x_max <- max(df_delai$delai_admission_derniere_hospit, na.rm = TRUE)
+y_max <- max(density(df_delai$delai_admission_derniere_hospit, na.rm = TRUE)$y)
+
+# Courbe de densité avec ligne à 30 jours
+p1 <- ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  coord_cartesian(xlim = c(0, x_max), ylim = c(0, y_max)) +
+  theme_minimal(base_size = 13)
+
+ggsave("delai_rehospitalisation_density.png", p1, width = 8, height = 5, dpi = 1000)
+
+# Courbe de densité sans ligne à 30 jours
+p2 <- ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  coord_cartesian(xlim = c(0, x_max), ylim = c(0, y_max)) +
+  theme_minimal(base_size = 13)
+
+ggsave("delai_rehospitalisation_density_noline.png", p2, width = 8, height = 5, dpi = 1000)
+
 
 
 ##-------Stats pour historique des traitements----
@@ -1208,6 +1337,7 @@ df$score_UCEIS <- as.numeric(df$score_UCEIS)
 tableau3 <- df %>%
   tbl_summary(
     include = all_of(cols_to_include_3),
+    by = delai_sup_30,
     type = list(
       score_UCEIS ~ "continuous",
       all_dichotomous() ~ "dichotomous"
@@ -1515,17 +1645,6 @@ tableau5
 
 
 
-#date de traitement de la poussée
-df$`1st_lign_date`
-df$`2nd_lign_date`
-df$`3rd_lign_date`
-df$`4th_lign_date`
-df$`5th_lign_date`
-df$date_admission_hopital
-
-df$date_debut_symptomes_episodes_actuel
-
-df$date_diagnostic_colite_aiguë_actuelle
 
 
-claudeAddin()
+df$corticodependance_impossibilité_sous_10_mg_ou_rechute_inf3mois_apres_arret
