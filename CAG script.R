@@ -853,9 +853,8 @@ tableau_ttt_poussee
 #df$Truelove_minor_Albumine_inf_or_equal_35
 #df$Truelove_minor_CRPsup_equal_30
 
-delai_symptomes_chirurgie
-
 cols_to_include_timing <- c(
+  "delai_chirurgie_premiers_symptomes",
   "delai_admission_derniere_hospit",
   "delai_chirurgie_diagnostic",
   "delai_chirurgie_premiers_symptomes",
@@ -1602,6 +1601,46 @@ tableau4 <- df %>%
 # Afficher
 tableau4
 
+#tableau4 mais sans by =
+tableau4 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_4),
+    missing = "ifany",
+    type  = list(all_dichotomous() ~ "dichotomous"),
+    value = list(all_dichotomous() ~ 1),
+    statistic = list(
+      all_continuous()  ~ "{median} ({p25}, {p75})",
+      all_dichotomous() ~ "{n} ({p}%)",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_dichotomous() ~ 0,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      approach ~ "Voie d'abord",
+      conversion ~ "Conversion",
+      moignon_rectal_hartmann_ileosigmoidostomie_FID_sigmoïdostomie ~ "Moignon rectal / stomie",
+      drainage ~ "Drainage associé",
+      omentectomie ~ "Omentectomie",
+      curage ~ "Curage",
+      duree_chirurgie_min ~ "Durée chirurgicale (min)",
+      transfusion ~ "Transfusion",
+      complication_perop_all ~ "Complication peropératoire (toutes)",
+      complication_perop_plaie_digestive ~ "Plaie digestive peropératoire",
+      complication_perop_plaie_vasculaire ~ "Plaie vasculaire peropératoire",
+      complication_perop_hemorragie ~ "Hémorragie peropératoire",
+      complication_perop_other ~ "Autre complication peropératoire",
+      complication_perop_gestion ~ "Gestion de la complication",
+      complication_perop_whole_text ~ "Description complication peropératoire"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+tableau4
+
 #--------Stats Postop----
 # Colonnes à inclure (une par ligne, regroupées par blocs)
 cols_to_include_5 <- c(
@@ -1730,6 +1769,74 @@ tableau5 <- df %>%
 
 # Afficher
 tableau5
+
+
+#tableau 5 mais sans by =
+tableau5 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_5),
+    missing = "ifany",
+    type  = list(all_dichotomous() ~ "dichotomous"),
+    value = list(all_dichotomous() ~ 1),
+    statistic = list(
+      all_continuous()  ~ "{median} ({p25}, {p75})",
+      all_dichotomous() ~ "{n} ({p}%)",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_dichotomous() ~ 0,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      intraabdominal_abcess_or_collection ~ "Abcès/collection intra-abdominal",
+      intra_abdominal_hematoma ~ "Hématome intra-abdominal",
+      wound_complication ~ "Complication pariétale",
+      detail_wound_complication ~ "Détail : complication pariétale",
+      peritonite ~ "Péritonite",
+      radiological_drainage_for_complication ~ "Drainage radiologique",
+      reoperation_for_complication ~ "Réintervention",
+      details_reoperation_for_complication ~ "Détail : réintervention",
+      ileus ~ "Iléus",
+      ileus_SNG_1_a_jeun_0 ~ "Iléus : SNG + mise à jeun",
+      ileus_SNG ~ "Iléus : SNG seule",
+      ileus_a_jeun_seul ~ "Iléus : mise à jeun seule",
+      stoma_related_complication ~ "Complication stomiale",
+      detail_stoma_related_complication ~ "Détail : complication stomiale",
+      rectal_bleeding ~ "Hémorragie rectale",
+      anemia_transfusion ~ "Anémie transfusée",
+      infection_urinaire ~ "Infection urinaire",
+      insuffisance_renale ~ "Insuffisance rénale aiguë",
+      acute_urinary_retention ~ "Rétention aiguë d’urines",
+      pneumopathie ~ "Pneumopathie",
+      MTEV ~ "MTEV",
+      catheter_infection ~ "Infection de cathéter",
+      bacteriema ~ "Bactériémie",
+      dehydratation_IV_fluids ~ "Déshydratation nécessitant perfusion",
+      poor_control_of_pain ~ "Mauvais contrôle de la douleur",
+      other ~ "Autre complication",
+      other_details ~ "Autre : détails",
+      other_sepsis ~ "Autre sepsis",
+      ClavienDindo ~ "Clavien-Dindo",
+      Dindo_sup2 ~ "Clavien-Dindo > II",
+      duree_hospit_postop ~ "Durée d’hospitalisation postopératoire (jours)",
+      duree_hospit_sup8 ~ "Durée d’hospitalisation > 8 jours",
+      Overall_morbidity ~ "Morbimortalité globale",
+      Severe_Morbidity ~ "Morbimortalité sévère",
+      Intraabdominal_septic_complications ~ "Complications septiques intra-abdominales",
+      Surgical_complications ~ "Complications chirurgicales",
+      Medical_complications ~ "Complications médicales",
+      all_septic ~ "Toutes complications septiques",
+      Stomial_complications ~ "Complications stomiales",
+      All_Stomial_or_Wound_complications ~ "Complications stomiales ou pariétales",
+      readmission_within_30d ~ "Réadmission < 30 jours")
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+
+tableau5
+
 
 
 
