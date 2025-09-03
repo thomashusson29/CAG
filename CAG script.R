@@ -545,6 +545,274 @@ ggsave("delai_rehospitalisation_density_noline.png", p2, width = 8, height = 5, 
 
 
 
+##-------Premières stats en fonction de df$at_least_3_medical_lines----
+cols_to_include_1 <- c(
+  "age_at_surg_or_dg", 
+  "BMI", 
+  "sex", 
+  "RCH", 
+  "ASAscore", 
+  "ASA_sup_2",
+  "active_smoker", 
+  "IBD_duration_years",
+  "IBD_age_of_diagnosis",
+  
+  # Charlson comorbidities
+  "CCI1_Prior_Myocardial",
+  "CCI1_Congestive_HF",
+  "CCI1_Peripheral_vascular",
+  "CCI1_Cerebrovascular_disease",
+  "CCI1_Dementia",
+  "CCI1_Chronic_pulmonary_disease",
+  "CCI1_Rheumatologic_disease",
+  "CCI1_Peptic_ulcer_disease",
+  "CCI1_Mild_liver_disease_(legere)",
+  "CCI1_Diabetes",
+  "CCI2_cerebrovascular_hemiplegia_event",
+  "CCI2_moderate_to_severe_renal_disease_DFGsup60",
+  "CCI2_diabetes_chronic_complications",
+  "CCI2_cancer_without_metastases",
+  "CCI2_leukemia",
+  "CCI2_lymphoma_myeloma",
+  "CCI3_moderate_severe_liver_disease",
+  "CCI6_metastatic_solid_tumor",
+  "CCI6_SIDA",
+  "Charlson_Comorbidity_total",
+  
+  # Tabac
+  "smoker",
+  "active_smoker",
+  
+  # IBD-specific,
+  "IBD_duration_days",
+  "CSP_associee",
+  "uveite_associee",
+  "psoriasis_ou_dermato_associee",
+  "aphtose_associee",
+  "appendicectomy_YN",
+  "SpA",
+  "LAP_associees",
+  "combientieme_poussee",
+  "IBD_age_of_diagnosis",
+  "poussee_inaugurale_Y_N",
+  "nombre_hospit_antérieures_pour_CAG",
+  "hospitalisations_anterieures_pour_CAG_ou_corticothérapie",
+  "ttt_dernière_CAG_CTC_seuls",
+  "ttt_dernière_CAG_CTC_et_2eligne", 
+  
+  
+  # Montreal classification
+  "MontrealClassA_A1sub16_A21740_A3sup40",
+  "MontrealClassB_B1nistricturenipenetrate_B2stricturing_B3_penetrate_B4_both"
+)
+
+
+
+
+df <- df %>%
+  dplyr::mutate(
+    sex = factor(sex),
+    smoker = factor(smoker),
+    active_smoker = factor(active_smoker),
+    Crohn_RCH = factor(Crohn_RCH)
+  )
+
+df <- df %>%
+  mutate(
+    
+    Montreal_Age_Class = if_else(
+      Crohn_RCH == "Crohn" & !is.na(IBD_age_of_diagnosis),
+      as.character(cut(IBD_age_of_diagnosis, c(-Inf,16,40,Inf), labels = c("A1","A2","A3"))),
+      NA_character_
+    ),
+    MontrealClassA_A1sub16_A21740_A3sup40 = if_else(
+      Crohn_RCH == "Crohn", Montreal_Age_Class,
+      as.character(MontrealClassA_A1sub16_A21740_A3sup40)
+    ),
+    Montreal_Age_Class_Label = dplyr::recode(
+      Montreal_Age_Class, A1 = "A1 (≤16 ans)", A2 = "A2 (17–40 ans)", A3 = "A3 (>40 ans)", .default = NA_character_
+    )
+  )
+
+
+tableau1 <- df %>%
+  tbl_summary(
+    by = at_least_3_medical_lines,
+    include = all_of(cols_to_include_1),
+    missing = "no",
+    type = list(
+      Charlson_Comorbidity_total ~ "continuous",   # <-- forcée en continue
+      combientieme_poussee ~ "continuous"# <-- forcée en continue
+    ),
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous() ~ 1,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      age_at_surg_or_dg ~ "Âge (années)",
+      BMI ~ "BMI (kg/m²)",
+      sex ~ "Sexe",
+      RCH ~ "RCH (n, %)",
+      ASAscore ~ "Score ASA",
+      ASA_sup_2 ~ "Score ASA > 2",
+      active_smoker ~ "Tabagisme actif",
+      IBD_duration_years ~ "Durée MICI (années)",
+      IBD_age_of_diagnosis ~ "Âge de diagnostic MICI (années)",
+      Charlson_Comorbidity_total ~ "Score de Charlson"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+# Afficher dans le viewer
+tableau1
+
+# export du tableau en docx ou odt
+tableau1 %>%
+  as_flex_table() %>%
+  flextable::save_as_docx(path = "tableau1.docx")
+
+#export html pour essayer
+tableau1 %>%
+  as_gt() %>%
+  gt::gtsave("tableau1.html")
+
+
+
+
+#délai réhospit après dernière hospitalisation
+cols_to_include_delai <- c(
+  "delai_admission_derniere_hospit"
+)
+
+df_sortie <- df %>%
+  filter(df$sortie_pendant_traitement_YN == 1)
+
+tableaudelai <- df_sortie %>%
+  tbl_summary(
+    by = delai_sup_30,
+    include = all_of(cols_to_include_delai),
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})"
+    ),
+    digits = list(
+      all_continuous() ~ 1
+    ),
+    label = list(
+      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3)")
+
+# Afficher dans le viewer
+tableaudelai
+
+#tableau délai sans by = 
+tableaudelai2 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_delai),
+    missing = "ifany",
+    statistic = list(
+      all_continuous() ~ "{median} ({p25}, {p75})"
+    ),
+    digits = list(
+      all_continuous() ~ 1
+    ),
+    label = list(
+      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+    )
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3)")
+
+tableaudelai2
+
+
+library(ggplot2)
+
+# On garde seulement les patients avec une réadmission
+df_delai <- df_sortie %>%
+  filter(!is.na(delai_admission_derniere_hospit))
+
+# Courbe de densité avec ligne à 30 jours
+ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation",
+    subtitle = "Ligne rouge = seuil à 30 jours"
+  ) +
+  theme_minimal(base_size = 13)
+
+#export
+ggsave("delai_rehospitalisation_density.png", width = 8, height = 5, dpi = 1000)
+
+# Courbe de densité sans ligne à 30 jours
+ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  theme_minimal(base_size = 13)
+
+#export
+ggsave("delai_rehospitalisation_density_noline.png", width = 8, height = 5, dpi = 1000)
+
+
+
+
+
+
+
+
+#A LA MÊME TAILLE
+library(ggplot2)
+
+# Définir les bornes communes
+x_max <- max(df_delai$delai_admission_derniere_hospit, na.rm = TRUE)
+y_max <- max(density(df_delai$delai_admission_derniere_hospit, na.rm = TRUE)$y)
+
+# Courbe de densité avec ligne à 30 jours
+p1 <- ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  coord_cartesian(xlim = c(0, x_max), ylim = c(0, y_max)) +
+  theme_minimal(base_size = 13)
+
+ggsave("delai_rehospitalisation_density.png", p1, width = 8, height = 5, dpi = 1000)
+
+# Courbe de densité sans ligne à 30 jours
+p2 <- ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+  geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
+  labs(
+    x = "Délai avant réhospitalisation (jours)",
+    y = "Densité",
+    title = "Distribution des délais avant réhospitalisation"
+  ) +
+  coord_cartesian(xlim = c(0, x_max), ylim = c(0, y_max)) +
+  theme_minimal(base_size = 13)
+
+ggsave("delai_rehospitalisation_density_noline.png", p2, width = 8, height = 5, dpi = 1000)
+
+
+
 ##-------Stats pour historique des traitements----
 #ne compte pas les patients pour qui la poussée est inaugurale de la RCH (donc pas de ttt de fond)
 df_t2 <- df %>%
@@ -1843,6 +2111,208 @@ tableau5
 
 
 
+#--------Stats Postop en fonction de df$at_least_3_medical_lines----
+# Colonnes à inclure (une par ligne, regroupées par blocs)
+cols_to_include_5 <- c(
+  # complications septiques/chirurgicales
+  "intraabdominal_abcess_or_collection",
+  "intra_abdominal_hematoma",
+  "wound_complication",
+  "detail_wound_complication",
+  "peritonite",
+  "radiological_drainage_for_complication",
+  "reoperation_for_complication",
+  "details_reoperation_for_complication",
+  
+  # iléus
+  "ileus",
+  "ileus_SNG_1_a_jeun_0",
+  "ileus_SNG",
+  "ileus_a_jeun_seul",
+  
+  # stomie / pariétal
+  "stoma_related_complication",
+  "detail_stoma_related_complication",
+  
+  # médicaux
+  "rectal_bleeding",
+  "anemia_transfusion",
+  "infection_urinaire",
+  "insuffisance_renale",
+  "acute_urinary_retention",
+  "pneumopathie",
+  "MTEV",
+  "catheter_infection",
+  "bacteriema",
+  "dehydratation_IV_fluids",
+  "poor_control_of_pain",
+  
+  # autres & scores
+  "other",
+  "other_details",
+  "other_sepsis",
+  "ClavienDindo",
+  "Dindo_sup2",
+  
+  # durées/sortie
+  "duree_hospit_postop",
+  "duree_hospit_sup8",
+  
+  # agrégats
+  "Overall_morbidity",
+  "Severe_Morbidity",
+  "Intraabdominal_septic_complications",
+  "Surgical_complications",
+  "Medical_complications",
+  "all_septic",
+  "Stomial_complications",
+  "All_Stomial_or_Wound_complications",
+  "readmission_within_30d",
+  "J_transit"
+)
+
+tableau5 <- df %>%
+  tbl_summary(
+    by = at_least_3_medical_lines,
+    include = all_of(cols_to_include_5),
+    missing = "ifany",
+    type  = list(all_dichotomous() ~ "dichotomous"),
+    value = list(all_dichotomous() ~ 1),
+    statistic = list(
+      all_continuous()  ~ "{median} ({p25}, {p75})",
+      all_dichotomous() ~ "{n} ({p}%)",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_dichotomous() ~ 0,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      intraabdominal_abcess_or_collection ~ "Abcès/collection intra-abdominal",
+      intra_abdominal_hematoma ~ "Hématome intra-abdominal",
+      wound_complication ~ "Complication pariétale",
+      detail_wound_complication ~ "Détail : complication pariétale",
+      peritonite ~ "Péritonite",
+      radiological_drainage_for_complication ~ "Drainage radiologique",
+      reoperation_for_complication ~ "Réintervention",
+      details_reoperation_for_complication ~ "Détail : réintervention",
+      ileus ~ "Iléus",
+      ileus_SNG_1_a_jeun_0 ~ "Iléus : SNG + mise à jeun",
+      ileus_SNG ~ "Iléus : SNG seule",
+      ileus_a_jeun_seul ~ "Iléus : mise à jeun seule",
+      stoma_related_complication ~ "Complication stomiale",
+      detail_stoma_related_complication ~ "Détail : complication stomiale",
+      rectal_bleeding ~ "Hémorragie rectale",
+      anemia_transfusion ~ "Anémie transfusée",
+      infection_urinaire ~ "Infection urinaire",
+      insuffisance_renale ~ "Insuffisance rénale aiguë",
+      acute_urinary_retention ~ "Rétention aiguë d’urines",
+      pneumopathie ~ "Pneumopathie",
+      MTEV ~ "MTEV",
+      catheter_infection ~ "Infection de cathéter",
+      bacteriema ~ "Bactériémie",
+      dehydratation_IV_fluids ~ "Déshydratation nécessitant perfusion",
+      poor_control_of_pain ~ "Mauvais contrôle de la douleur",
+      other ~ "Autre complication",
+      other_details ~ "Autre : détails",
+      other_sepsis ~ "Autre sepsis",
+      ClavienDindo ~ "Clavien-Dindo",
+      Dindo_sup2 ~ "Clavien-Dindo > II",
+      duree_hospit_postop ~ "Durée d’hospitalisation postopératoire (jours)",
+      duree_hospit_sup8 ~ "Durée d’hospitalisation > 8 jours",
+      Overall_morbidity ~ "Morbimortalité globale",
+      Severe_Morbidity ~ "Morbimortalité sévère",
+      Intraabdominal_septic_complications ~ "Complications septiques intra-abdominales",
+      Surgical_complications ~ "Complications chirurgicales",
+      Medical_complications ~ "Complications médicales",
+      all_septic ~ "Toutes complications septiques",
+      Stomial_complications ~ "Complications stomiales",
+      All_Stomial_or_Wound_complications ~ "Complications stomiales ou pariétales",
+      readmission_within_30d ~ "Réadmission < 30 jours",
+      J_transit ~ "Jours avant reprise du transit"
+    )
+  ) %>%
+  add_p() %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+# Afficher
+tableau5
+
+
+#tableau 5 mais sans by =
+tableau5 <- df %>%
+  tbl_summary(
+    include = all_of(cols_to_include_5),
+    missing = "ifany",
+    type  = list(all_dichotomous() ~ "dichotomous"),
+    value = list(all_dichotomous() ~ 1),
+    statistic = list(
+      all_continuous()  ~ "{median} ({p25}, {p75})",
+      all_dichotomous() ~ "{n} ({p}%)",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_dichotomous() ~ 0,
+      all_categorical() ~ 0
+    ),
+    label = list(
+      intraabdominal_abcess_or_collection ~ "Abcès/collection intra-abdominal",
+      intra_abdominal_hematoma ~ "Hématome intra-abdominal",
+      wound_complication ~ "Complication pariétale",
+      detail_wound_complication ~ "Détail : complication pariétale",
+      peritonite ~ "Péritonite",
+      radiological_drainage_for_complication ~ "Drainage radiologique",
+      reoperation_for_complication ~ "Réintervention",
+      details_reoperation_for_complication ~ "Détail : réintervention",
+      ileus ~ "Iléus",
+      ileus_SNG_1_a_jeun_0 ~ "Iléus : SNG + mise à jeun",
+      ileus_SNG ~ "Iléus : SNG seule",
+      ileus_a_jeun_seul ~ "Iléus : mise à jeun seule",
+      stoma_related_complication ~ "Complication stomiale",
+      detail_stoma_related_complication ~ "Détail : complication stomiale",
+      rectal_bleeding ~ "Hémorragie rectale",
+      anemia_transfusion ~ "Anémie transfusée",
+      infection_urinaire ~ "Infection urinaire",
+      insuffisance_renale ~ "Insuffisance rénale aiguë",
+      acute_urinary_retention ~ "Rétention aiguë d’urines",
+      pneumopathie ~ "Pneumopathie",
+      MTEV ~ "MTEV",
+      catheter_infection ~ "Infection de cathéter",
+      bacteriema ~ "Bactériémie",
+      dehydratation_IV_fluids ~ "Déshydratation nécessitant perfusion",
+      poor_control_of_pain ~ "Mauvais contrôle de la douleur",
+      other ~ "Autre complication",
+      other_details ~ "Autre : détails",
+      other_sepsis ~ "Autre sepsis",
+      ClavienDindo ~ "Clavien-Dindo",
+      Dindo_sup2 ~ "Clavien-Dindo > II",
+      duree_hospit_postop ~ "Durée d’hospitalisation postopératoire (jours)",
+      duree_hospit_sup8 ~ "Durée d’hospitalisation > 8 jours",
+      Overall_morbidity ~ "Morbimortalité globale",
+      Severe_Morbidity ~ "Morbimortalité sévère",
+      Intraabdominal_septic_complications ~ "Complications septiques intra-abdominales",
+      Surgical_complications ~ "Complications chirurgicales",
+      Medical_complications ~ "Complications médicales",
+      all_septic ~ "Toutes complications septiques",
+      Stomial_complications ~ "Complications stomiales",
+      All_Stomial_or_Wound_complications ~ "Complications stomiales ou pariétales",
+      readmission_within_30d ~ "Réadmission < 30 jours")
+  ) %>%
+  modify_header(label ~ "**Caractéristique**") %>%
+  modify_footnote(all_stat_cols() ~ "Médiane (Q1, Q3) ou n (%)")
+
+
+tableau5
+
+
+
+
+
+
+
 #--------Score CPT-----
 
 # Recalcul SCORE 1 à partir de 'df' uniquement (sans ever_sortie_med)
@@ -2203,3 +2673,17 @@ ggplot(tab_cat, aes(x = Catégorie, y = Freq, fill = CPT)) +
 
 
 
+
+
+
+#refaire les stats en fonction des patients qui ont eut ou non une 3e ligne de traitement médical
+df <- df %>%
+  mutate(at_least_3_medical_lines = ifelse(`3rd_lign` == 1 & `3rd_lign_surgery` != 1, 1, 0))
+
+
+
+
+colnames(df)
+df$combientieme_poussee
+claudeAddin(
+)
