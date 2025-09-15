@@ -18,7 +18,7 @@ install.packages(c(
   "parameters", "broom.helpers", "forestplot", "kableExtra", "rsconnect", "pacman", "stringr", "knitr", "purr", "lubridate"
 ))
 
-# Chargement des packages
+# ----LIBRARY ----
 library(cardx)
 library(dplyr)
 library(readxl)
@@ -60,7 +60,7 @@ library(rsconnect)
 library(pacman)
 library(stringr)
 
-c
+
 #---COMMIT & PUSH SUR GITHUB----
 
 commit_and_push_CAG <- function() {
@@ -328,7 +328,7 @@ df <- df %>%
 
 tableau1 <- df %>%
   tbl_summary(
-    by = delai_sup_30,
+    by = sortie_pendant_traitement_YN,
     include = all_of(cols_to_include_1),
     missing = "no",
     type = list(
@@ -378,7 +378,7 @@ tableau1 %>%
 
 #délai réhospit après dernière hospitalisation
 cols_to_include_delai <- c(
-  "delai_admission_derniere_hospit"
+  "bisdelai_dernier_ttt_rehospit"
 )
 
 df_sortie <- df %>%
@@ -396,7 +396,7 @@ tableaudelai <- df_sortie %>%
       all_continuous() ~ 1
     ),
     label = list(
-      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+      bisdelai_dernier_ttt_rehospit ~ "Délai: sortie → réhospit (j)"
     )
   ) %>%
   add_p() %>%
@@ -418,7 +418,7 @@ tableaudelai2 <- df %>%
       all_continuous() ~ 1
     ),
     label = list(
-      delai_admission_derniere_hospit ~ "Délai: sortie → réhospit (j)"
+      bisdelai_dernier_ttt_rehospit ~ "Délai: sortie → réhospit (j)"
     )
   ) %>%
   modify_header(label ~ "**Caractéristique**") %>%
@@ -431,10 +431,10 @@ library(ggplot2)
 
 # On garde seulement les patients avec une réadmission
 df_delai <- df_sortie %>%
-  filter(!is.na(delai_admission_derniere_hospit))
+  filter(!is.na(bisdelai_dernier_ttt_rehospit))
 
 # Courbe de densité avec ligne à 30 jours
-ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+ggplot(df_delai, aes(x = bisdelai_dernier_ttt_rehospit)) +
   geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
   geom_vline(xintercept = 30, linetype = "dashed", color = "red", size = 1) +
   labs(
@@ -449,7 +449,7 @@ ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
 ggsave("delai_rehospitalisation_density.png", width = 8, height = 5, dpi = 1000)
 
 # Courbe de densité sans ligne à 30 jours
-ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
+ggplot(df_delai, aes(x = bisdelai_dernier_ttt_rehospit)) +
   geom_density(fill = "skyblue", alpha = 0.4, color = "blue") +
   labs(
     x = "Délai avant réhospitalisation (jours)",
@@ -460,6 +460,20 @@ ggplot(df_delai, aes(x = delai_admission_derniere_hospit)) +
 
 #export
 ggsave("delai_rehospitalisation_density_noline.png", width = 8, height = 5, dpi = 1000)
+
+#afficher le délai médian de réadmission et Q1 - Q3
+median_delay <- median(df_delai$bisdelai_dernier_ttt_rehospit, na.rm = TRUE)
+iqr_delay <- quantile(df_delai$bisdelai_dernier_ttt_rehospit, probs = c(0.25, 0.75), na.rm = TRUE)
+cat("Délai médian de réadmission :", median_delay, "jours\n")
+cat("IQR du délai de réadmission :", iqr_delay[1], "-", iqr_delay[2], "jours\n")
+
+#afficher Q1 et Q3
+q1_delay <- quantile(df_delai$bisdelai_dernier_ttt_rehospit, probs = 0.25, na.rm = TRUE)
+q3_delay <- quantile(df_delai$bisdelai_dernier_ttt_rehospit, probs = 0.75, na.rm = TRUE)
+cat("Q1 du délai de réadmission :", q1_delay, "jours\n")
+cat("Q3 du délai de réadmission :", q3_delay, "jours\n")
+
+
 
 
 
@@ -1057,6 +1071,23 @@ tableau_ttt_poussee <- df %>%
 
 # Afficher dans le viewer
 tableau_ttt_poussee
+
+#tableau_ttt_poussee avec by=
+tableau_ttt_poussee2 <- df %>%
+  tbl_summary(
+    by = delai_sup_30,
+    include = all_of(cols_to_include_ttt_poussee),
+    missing = "ifany",
+    percent = "column",
+    statistic = list(all_categorical() ~ "{n} ({p}%)"),
+    digits = list(all_categorical() ~ 0)
+  ) %>%
+  add_p() %>%
+  modify_header(label ~ "**Caractéristique**")
+
+# Afficher dans le viewer
+tableau_ttt_poussee2
+
   
 
 
@@ -1930,7 +1961,7 @@ cols_to_include_5 <- c(
 
 tableau5 <- df %>%
   tbl_summary(
-    by = delai_sup_30,
+    by = bissortie_pendant_traitement_YN,
     include = all_of(cols_to_include_5),
     missing = "ifany",
     type  = list(all_dichotomous() ~ "dichotomous"),
