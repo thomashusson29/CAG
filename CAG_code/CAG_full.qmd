@@ -255,7 +255,7 @@ ggsave(
 #| results: hide
 #| message: false
 cols_to_include_1 <- c(
-    "age_at_surg_or_dg", 
+    "age_at_surg_or_dg_CAG", 
     "BMI", 
     "sex", 
     "RCH_YN", 
@@ -336,7 +336,7 @@ tableau1 <- df %>%
     ),
     by = opere,
     label = list(
-        age_at_surg_or_dg ~ "Age (years)",
+        age_at_surg_or_dg_CAG ~ "Age (years)",
         BMI ~ "BMI (kg/m²)",
         sex ~ "Sex (n, %)",
         RCH_YN ~ "RCH (n, %)",
@@ -354,7 +354,7 @@ tableau1 <- df %>%
         ttt_dernière_CAG_CTC_et_2eligne ~ "Treatment of the last CAG: corticosteroids + second line (n, %)",
         smoker ~ "Smoking status (n, %)",
         IBD_duration_days ~ "IBD duration (days)",
-        CSP_associee ~ "Associated PSC (n, %)",
+        CSP_associee ~ "Associated scleros (n, %)",
         uveite_associee ~ "Associated uveitis (n, %)",
         psoriasis_ou_dermato_associee ~ "Associated psoriasis or dermatosis (n, %)",
         aphtose_associee ~ "Associated aphthosis (n, %)",
@@ -371,8 +371,10 @@ tableau1 <- df %>%
     add_p()
 ```
 
+
+
 ```{r}
-#| label: afficher_tableau1
+#| label: afficher_tableau1_latex
 #| echo: false
 #| results: "asis"
 
@@ -387,4 +389,6 @@ tableau1 %>%
     # (Optionnel) Ajuste la taille de la police si le tableau est encore trop large
     kableExtra::kable_styling(latex_options = c("repeat_header"), font_size = 9)
 ```
+
+
 

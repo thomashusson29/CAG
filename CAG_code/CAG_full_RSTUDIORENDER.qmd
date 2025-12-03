@@ -1,73 +1,60 @@
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+---
+title: "Analyse statistique complète - Colite Aiguë Grave"
+author: "Thomas Husson"
+format:
+    pdf:
+        toc: true
+        toc-depth: 5
+        pdf-engine: xelatex
+        number-sections: true
+        header-includes: |
+            % \usepackage{fontspec} 
+            % \setmainfont{Ubuntu}
+            \usepackage{etoolbox}
+            \renewcommand{\contentsname}{}
+            \AtBeginDocument{
+                \addtocontents{toc}{\protect\smallskip}
+                \let\oldtableofcontents\tableofcontents
+                \renewcommand{\tableofcontents}{
+                \begingroup
+                    \footnotesize
+                    \setlength{\parskip}{2pt}
+                    \oldtableofcontents
+                \endgroup
+                }
+            }
+            \setcounter{tocdepth}{5}
+            \makeatletter
+            \renewcommand{\@tocrmarg}{0pt}
+            \makeatother
+            \usepackage{fvextra}
+            \usepackage[section]{placeins}
+            % --- GESTION DU CODE ---
+            \usepackage{fvextra}
+            % !!! CORRECTION ICI : Force le retour à la ligne pour les blocs de code Quarto !!!
+            \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+            % -----------------------
+            \usepackage{needspace}
+            \usepackage{float}
+            \floatplacement{figure}{H}
+            \floatplacement{table}{H}
+            \newcommand{\sectionbreak}{\needspace{5\baselineskip}}
+            \setlength{\parindent}{0pt}
+            \setlength{\parskip}{4pt}
+            \usepackage[most]{tcolorbox}
+            \usepackage{color}
+            \definecolor{lightgray}{gray}{0.95}
+            \newtcolorbox{graybox}{colback=gray!10!white,colframe=black,boxrule=0.6pt,arc=1mm,left=6pt,right=6pt,top=4pt,bottom=4pt}
+            \newtcolorbox{codebox}{breakable,colback=blue!5!white,colframe=blue!50!black,boxrule=0.5pt,arc=1mm,left=4pt,right=4pt,top=3pt,bottom=3pt}
+            \DefineVerbatimEnvironment{CodeBoxContent}{Verbatim}{fontsize=\small,breaklines,breakanywhere}
+            \renewcommand{\thesection}{\arabic{section}}
+            \renewcommand{\thesubsection}{\thesection.\Alph{subsection}}
+            \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+geometry: margin=2.5cm
+---
+
+```{r}
 #| label: setup
 #| include: false
 #| echo: false
@@ -113,10 +100,10 @@ library(pacman)
 library(kableExtra)
 library(stringr)
 knitr::opts_chunk$set(echo = TRUE)
-#
-#
-#
-#
+```
+
+# Importation des données
+```{r}
 #| label: importation_donnees
 #| echo: false
 gs4_deauth()  # aucune fenêtre OAuth, accès read-only
@@ -128,11 +115,11 @@ df_total <- read_sheet(
     filter(vrai_CAG == 1)
 
 df <- df_total
-#
-#
-#
-#
-#
+```
+
+# Recodage des variables
+
+```{r}
 #| label: recodage_variables
 #| echo: false
 df <- df %>%
@@ -158,77 +145,82 @@ df <- df %>%
         Montreal_Age_Class, A1 = "A1 (≤16 ans)", A2 = "A2 (17–40 ans)", A3 = "A3 (>40 ans)", .default = NA_character_
     )
     )
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+```
+
+
+## Comorbidités et antécédents médicaux
+
+-   `CCI..`: Variables de comorbidités selon l'indice de Charlson
+-   `Charlson_Comorbidity_total`: Score de comorbidité de Charlson total
+
+## Histoire de la MICI
+-   `IBD_duration_days`: Durée de la maladie inflammatoire chronique intestinale (MICI) en jours
+-   `IBD_duration_years`: Durée de la maladie inflammatoire chronique intestinale (MICI) en années
+-   `IBD_age_of_diagnosis`: Age au diagnostic de la MICI (années)
+-   `CSP_associee`: présence d'une cholangite sclérosante primitive associée (Oui/Non)
+-   `uveite_associee`: présence d'une uvéite associée (Oui/Non)
+-   `psoriasis_ou_dermato_associee`: présence d'un psoriasis ou d'une dermatose associée (Oui/Non)
+-   `aphtose_associee`: présence d'une aphtose associée (Oui/Non)
+-   `appendicectomy_YN`: antécédent d'appendicectomie (Oui/Non)
+-   `SpA`: présence d'une spondylarthrite ankylosante (Oui/Non)
+-   `LAP_associees`: présence de lésions ano-périnéales associées (Oui/Non)
+-   Montreal classification (pour la maladie de Crohn uniquement)
+    -   `MontrealClassA_A1sub16_A21740_A3sup40`: Classe d'âge selon la classification de Montréal
+    -   `MontrealClassB_B1nistricturenipenetrate_B2stricturing_B3_penetrate_B4_both`: Type de maladie selon la classification de Montréal
+
+## Caractéristiques de la poussée aiguë de colite aiguë grave (CAG)
+
+-   `poussee_inaugurale_Y_N`: la CAG actuelle est-elle une poussée inaugurale (Oui/Non)
+-   `combientieme_poussee`: Combientième poussée de la MICI actuelle
+-   `hospitalisations_anterieures_pour_CAG_ou_corticothérapie`: Y a-t-il eu des hospitalisations antérieures pour CAG ou corticothérapie (Oui/Non)
+-   `hospitalisations_anterieures_pourquoi`: Raison des hospitalisations antérieures
+-   `ttt_dernière_CAG_CTC_seuls`: Traitement de la dernière CAG : CTC seuls (Oui/Non)
+-   `ttt_dernière_CAG_CTC_et_2eligne`: Traitement de la dernière CAG : CTC + 2e ligne (Oui/Non)
+
+
+
+
+
+
+# Tableau 1 : caractéristiques descriptives
+
+## Pourcentage patients opérés vs non opérés
+
+`df$opere` contient l'information sur le fait qu'un patient ait été opéré ou non (en format 0/1 avec 1 = opéré).
+
+```{r}
 #| label: pourcentage_opere
 #| echo: false
 #| results: "asis"
 #| fig.cap: "Répartition des patients opérés vs non opérés"
-library(ggplot2)
-library(dplyr)
-
-# 1. Préparer les données dans un data.frame (nécessaire pour ggplot)
 df_pie <- df %>%
     count(opere) %>%
     mutate(
-    pct = round(n / sum(n) * 100, 1),
-    label = paste0(ifelse(opere == 1, "Opéré", "Non opéré"), "\n", pct, "%"),
-    # Position des labels au milieu des parts
-    ypos = cumsum(n) - 0.5 * n 
+        pct = round(n / sum(n) * 100, 1),
+        # On crée le label texte
+        label_text = paste0(ifelse(opere == 1, "Opéré", "Non opéré"), "\n", pct, "%"),
+        # On transforme 'opere' en facteur PROPREMENT pour l'ordre d'affichage et la légende
+        opere_facteur = factor(opere, levels = c(0, 1), labels = c("Non opéré", "Opéré"))
     )
 
-# 2. Graphique
-pie_chart_gg <- ggplot(df_pie, aes(x = "", y = n, fill = as.factor(opere))) +
+# 2. Création du graphique
+pie_chart_gg <- ggplot(df_pie, aes(x = "", y = n, fill = opere_facteur)) +
     geom_bar(stat = "identity", width = 1, color = "white") +
     coord_polar("y", start = 0) +
-    theme_void() + # Enlève les axes gris
+    theme_void() + 
     scale_fill_manual(values = c("lightblue", "lightcoral")) +
-    geom_text(aes(y = ypos, label = label), color = "black", size = 5) +
+    
+    # --- LA CORRECTION EST ICI ---
+    geom_text(aes(label = label_text), 
+                # Cette fonction place le texte exactement au milieu de chaque part empilée
+                position = position_stack(vjust = 0.5), 
+                color = "black", 
+                size = 5) +
+    # -----------------------------
+
     labs(title = "Répartition des patients opérés vs non opérés", fill = "Statut")
 
-# Afficher
+# Affichage
 print(pie_chart_gg)
 
 # 3. Export avec ggsave (Maintenant ça marche !)
@@ -240,17 +232,17 @@ ggsave(
         height = 4, 
         units = "in"
         )
-#
-#
-#
-#
-#
+```
+
+## Tableau 1 : Caractéristiques des patients selon le traitement chirurgical ou non chirurgical de la CAG
+
+```{r}
 #| label: cols_to_include_1
 #| echo: false
 #| results: hide
 #| message: false
 cols_to_include_1 <- c(
-    "age_at_surg_or_dg", 
+    "age_at_surg_or_dg_CAG", 
     "BMI", 
     "sex", 
     "RCH_YN", 
@@ -331,13 +323,14 @@ tableau1 <- df %>%
     ),
     by = opere,
     label = list(
-        age_at_surg_or_dg ~ "Age (years)",
+        age_at_surg_or_dg_CAG ~ "Age (years)",
         BMI ~ "BMI (kg/m²)",
         sex ~ "Sex (n, %)",
         RCH_YN ~ "RCH (n, %)",
         ASAscore ~ "ASA score (n, %)",
         ASA_sup_2 ~ "ASA score > 2 (n, %)",
         active_smoker ~ "Active smoker",
+        smoker ~ "Smoking status (n, %)",
         IBD_duration_years ~ "IBD duration (years)",
         IBD_age_of_diagnosis ~ "Age of IBD diagnosis (years)",
         Charlson_Comorbidity_total ~ "Charlson Comorbidity Score",
@@ -347,9 +340,8 @@ tableau1 <- df %>%
         hospitalisations_anterieures_pourquoi ~ "Reason for previous hospitalizations",
         ttt_dernière_CAG_CTC_seuls ~ "Treatment of the last CAG: corticosteroids only (n, %)",
         ttt_dernière_CAG_CTC_et_2eligne ~ "Treatment of the last CAG: corticosteroids + second line (n, %)",
-        smoker ~ "Smoking status (n, %)",
         IBD_duration_days ~ "IBD duration (days)",
-        CSP_associee ~ "Associated PSC (n, %)",
+        CSP_associee ~ "Associated scleros (n, %)",
         uveite_associee ~ "Associated uveitis (n, %)",
         psoriasis_ou_dermato_associee ~ "Associated psoriasis or dermatosis (n, %)",
         aphtose_associee ~ "Associated aphthosis (n, %)",
@@ -363,11 +355,18 @@ tableau1 <- df %>%
     modify_header(label ~ "**Characteristic**") %>%
     modify_footnote(all_stat_cols() ~ "Median (Q1, Q3) or n (%)") %>%
     bold_labels() %>%
-    add_p()
-#
-#
-#
-#| label: afficher_tableau1
+    add_p(
+    test = list(
+        all_continuous() ~ "t.test", #t.test
+        all_categorical() ~ "chisq.test"
+    )
+    )
+```
+
+
+
+```{r}
+#| label: afficher_tableau1_latex
 #| echo: false
 #| results: "asis"
 
@@ -381,8 +380,7 @@ tableau1 %>%
     kableExtra::column_spec(1, width = "6cm") %>%
     # (Optionnel) Ajuste la taille de la police si le tableau est encore trop large
     kableExtra::kable_styling(latex_options = c("repeat_header"), font_size = 9)
-#
-#
-#
-#
-#
+```
+
+
+
