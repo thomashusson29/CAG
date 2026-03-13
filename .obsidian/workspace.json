@@ -1,0 +1,191 @@
+{
+  "main": {
+    "id": "af7087df0b43a010",
+    "type": "split",
+    "children": [
+      {
+        "id": "f7b6d69772f2a4f3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3529a2819e470c37",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "A faire.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "A faire"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "bb85a2cedf56bd7d",
+    "type": "split",
+    "children": [
+      {
+        "id": "89183ead62c6ddde",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "daa6f5576b6b8719",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorateur de fichiers"
+            }
+          },
+          {
+            "id": "c547f88184229b0e",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Rechercher"
+            }
+          },
+          {
+            "id": "d3cca816bff67fb3",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Signets"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "b47648dd8699ce35",
+    "type": "split",
+    "children": [
+      {
+        "id": "a9033a0020d1f55b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6f0f113b13f2db91",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "A faire.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Rétrolien pour A faire"
+            }
+          },
+          {
+            "id": "cc68e92c2da3d6a6",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "A faire.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Liens sortants de A faire"
+            }
+          },
+          {
+            "id": "b8a86bd821e9c8ce",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Mots-clés"
+            }
+          },
+          {
+            "id": "6156969c8382d32c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Toutes les propriétés"
+            }
+          },
+          {
+            "id": "27bd8de4d838eabc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "A faire.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Plan de A faire"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Ouvrir le sélecteur rapide": false,
+      "graph:Ouvrir la vue graphique": false,
+      "canvas:Créer une nouvelle toile": false,
+      "daily-notes:Ouvrir la note quotidienne": false,
+      "templates:Insérer le modèle": false,
+      "command-palette:Ouvrir la palette de commandes": false,
+      "bases:Créer une nouvelle base": false
+    }
+  },
+  "active": "3529a2819e470c37",
+  "lastOpenFiles": [
+    "Documents/lu71091qjkx.tmp",
+    "A faire.md"
+  ]
+}
